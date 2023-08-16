@@ -5,6 +5,8 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setBigMenu } from "../Redux/bigMenuSlice";
 import { useQuery } from "react-query";
+import { setPrinters } from "../Redux/printerSettingsSlice";
+import sortPrinters from "../Utils/shortPrinters";
 
 function Categories({ getActiveId }) {
 	// const [categories, setCategories] = useState([]);
@@ -27,9 +29,25 @@ function Categories({ getActiveId }) {
 	};
 
 	//   react query api call for data chashing, loading and error state management
-	const { data, status, isLoading } = useQuery("bigMenu", getCategories, {
+	const { data, status, isLoading } = useQuery({
+		queryKey: "bigMenu",
+		queryFn: getCategories,
 		staleTime: 1200000,
 		onSuccess: (data) => dispatch(setBigMenu({ data })),
+	});
+
+	const getPrinters = async () => {
+		const { data } = await axios.get(`http://${IPAddress}:3001/getPrinters`);
+		return data;
+	};
+
+	useQuery({
+		queryKey: "printers",
+		queryFn: getPrinters,
+		onSuccess: (printers) => {
+			const FullPrintersData = sortPrinters(printers);
+			dispatch(setPrinters({ FullPrintersData }));
+		},
 	});
 
 	const categoryList = (

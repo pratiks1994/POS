@@ -15,6 +15,8 @@ import EditPrinter from "./pages/EditPrinter.js";
 import PrinterAssign from "./pages/PrinterAssign.js";
 import AssignBill from "./pages/AssignBill.js";
 import AssignKot from "./pages/AssignKot.js";
+import BillingScreenConfig from "./pages/BillingScreenConfig.js";
+import EditBillingScreen from "./pages/EditBillingScreen.js";
 
 function Main() { 
       return (
@@ -31,6 +33,11 @@ function Main() {
                               <Route path="tableView" element={<TableView />} />
                               <Route path="configuration">
                                     <Route index element={<Configuration />} />
+                                    <Route path="billingScreenConfig">
+                                        <Route index element={<BillingScreenConfig/>}/>
+                                        <Route path="editBillingScreen" element={<EditBillingScreen/>}/>
+                                         
+                                     </Route>     
                                     <Route path="printerConfig">
                                           <Route index element={<PrinterConfig />} />
                                           <Route path="PrintersList">

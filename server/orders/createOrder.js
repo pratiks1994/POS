@@ -22,6 +22,7 @@ const createOrder = (order) => {
 	let userId;
 	let restaurantId = 1;
 	let orderId;
+
 	const {
 		customerName,
 		customerContact,
@@ -38,6 +39,7 @@ const createOrder = (order) => {
 		subTotal,
 		tableNumber,
 		orderCart,
+		printCount
 	} = order;
 
 	if (customerContact) {
@@ -76,7 +78,7 @@ const createOrder = (order) => {
 	const orderTrans = db2.transaction((userId) => {
 		const orderInfo = db2
 			.prepare(
-				"INSERT INTO orders (user_id,order_number,restaurant_id,customer_name,complete_address,phone_number,order_type,dine_in_table_no,item_total,description,total_discount,total_tax,delivery_charges,total,payment_type,order_status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now', 'localtime'),datetime('now', 'localtime'))"
+				"INSERT INTO orders (user_id,order_number,restaurant_id,customer_name,complete_address,phone_number,order_type,dine_in_table_no,item_total,description,total_discount,total_tax,delivery_charges,total,payment_type,order_status,print_count,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now', 'localtime'),datetime('now', 'localtime'))"
 			)
 			.run([
 				userId,
@@ -95,6 +97,7 @@ const createOrder = (order) => {
 				cartTotal,
 				paymentMethod,
 				"accepted",
+				printCount,
 			]);
 
 		const cartTrans = db2.transaction((orderCart, orderId) => {
@@ -237,7 +240,7 @@ const createOrder = (order) => {
 	//       }
 	// );
 	//  console.log(`userId ${userId}, orderId ${orderId}`)
-	return { userId, orderId };
+	return { userId, orderId ,orderNo};
 };
 
 module.exports = { createOrder };

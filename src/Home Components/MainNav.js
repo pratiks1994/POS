@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStore, faBowlFood, faUsersViewfinder, faTruck, faCirclePause, faBellConcierge, faBell, faUser, faPowerOff, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { resetFinalOrder } from "../Redux/finalOrderSlice";
+import { modifyCartData, resetFinalOrder } from "../Redux/finalOrderSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import ConfigSideBar from "./ConfigSideBar";
@@ -22,6 +22,7 @@ function MainNav() {
       const [showHoldOrders, setShowHoldOrders] = useState(false);
       const [showConfigSideBar, setShowConfigSideBar] = useState(false);
       const { holdOrderCount } = useSelector((state) => state.UIActive);
+      const defaultSettings = useSelector(state => state.bigMenu.defaultSettings)
       const dispatch = useDispatch();
       const navigate = useNavigate();
 
@@ -32,8 +33,11 @@ function MainNav() {
 
       const getNewOrderPage = () => {
             dispatch(resetFinalOrder());
+            // dispatch(modifyCartData({}))
             dispatch(setActive({ key: "isCartActionDisable", name: false }));
-            navigate("/Home");
+            dispatch(modifyCartData({orderType:defaultSettings.default_order_type || "delivery"}))
+            dispatch(modifyCartData({paymentMethod:defaultSettings.default_payment_type || "cash"}))
+            defaultSettings.default_view==="table_view" ? navigate("/Home/tableView") :navigate("/Home");
       };
 
       return (

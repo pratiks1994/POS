@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import styles from "./EditPrinter.module.css";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,11 +6,10 @@ import BackButton from "../Feature Components/BackButton";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useQuery, useMutation, useQueryClient } from "react-query";
-
 import SelectPrinter from "../Edit Printer Components/SelectPrinter";
 import AssignPrinterToBill from "../Edit Printer Components/AssignPrinterToBill";
 import AssignPrinterToKot from "../Edit Printer Components/AssignPrinterToKot";
-import ToggleSwitch from "../Live View Components/ToggleSwitch";
+
 import notify from "../Feature Components/notify";
 import SelectCategoriesToPrint from "../Edit Printer Components/SelectCategoriesToPrint";
 import axiosInstance from "../Feature Components/axiosGlobal";
@@ -81,6 +80,7 @@ function EditPrinter() {
 		isError,
 		error,
 	} = useQuery({
+		initialData:[],
 		queryKey: "printers",
 		queryFn: getPrinters,
 		onSuccess: (data) => {
@@ -132,11 +132,13 @@ function EditPrinter() {
 				}
 			});
 
-			console.log(performance.now() - start)
+			// console.log(performance.now() - start)
 		},
 
 		refetchOnWindowFocus: false,
 	});
+
+	console.log(selectedItems,selectedCategory)
 
 	const { data: connectedPrinters } = useQuery({
 		queryFn: getConnectedPrinters,
@@ -148,6 +150,7 @@ function EditPrinter() {
 		mutationFn: updatePrinter,
 		onSuccess: () => {
 			queryClient.invalidateQueries("printers");
+
 			notify("success", "Printer Assigned success");
 			setTimeout(() => navigate(".."), 500);
 		},
@@ -157,6 +160,7 @@ function EditPrinter() {
 	});
 
 	const handleSave = async (printer, printerKotOrderType, printerBillOrderType) => {
+		
 		const billPrintOrderTypes = printerBillOrderType.reduce((acc, orderType) => (orderType.isChecked ? [...acc, orderType.id] : acc), []).join(",");
 		const billPrintCopyCount = printerBillOrderType.map((ordertype) => ordertype.copyCount || 0).join(",");
 
@@ -166,7 +170,6 @@ function EditPrinter() {
 		const printCategories = selectedCategory.allSelected || !selectedCategory.selectedCategoryIds.length ? "-1" : selectedCategory.selectedCategoryIds.join(",");
 		const printItems = selectedItems.allSelected || !selectedItems.selectedItemIds.length ? "-1" : selectedItems.selectedItemIds.join(",");
 
-		console.log(printCategories, printItems);
 
 		printerMutation.mutate({ ...printer, kotPrintCopyCount, kotPrintOrderTypes, billPrintCopyCount, billPrintOrderTypes, printCategories, printItems });
 	};
@@ -207,11 +210,13 @@ function EditPrinter() {
 						selectedCategory={selectedCategory}
 						setSelectedCategory={setSelectedCategory}
 						categories={categories}
+						setSelectedItems={setSelectedItems}
 					/>
 					<SelectItemsToPrint
 						selectedItems={selectedItems}
 						setSelectedItems={setSelectedItems}
 						categories={categories}
+						selectedCategory={selectedCategory}
 					/>
 				</div>
 			)}

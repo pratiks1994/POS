@@ -1,4 +1,5 @@
 const Database = require("better-sqlite3");
+const { getDefaultScreenData } = require("../settings/getDefaultScreenData");
 const db2 = new Database("./server/restaurant.sqlite", {});
 // const db2 = new Database("restaurant.sqlite", {});
 
@@ -32,7 +33,8 @@ const getMenuData = () => {
 		const dineInTables = dineInTablesStmt.all([area.id]);
 		return { ...area, tables: dineInTables };
 	});
-	// console.log(dineInTables)
+	
+	const defaultSettings = getDefaultScreenData()
 
 	const categories = categoryPrepare.all([]);
 
@@ -81,7 +83,7 @@ const getMenuData = () => {
 		return { ...category, items: itemsWithVariations };
 	});
 
-	return { categories: categoriesWithItems, areas: areasWithTable };
+	return { categories: categoriesWithItems, areas: areasWithTable,defaultSettings };
 };
 
 // const getMenuData = () => {

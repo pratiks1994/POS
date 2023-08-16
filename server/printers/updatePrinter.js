@@ -18,8 +18,8 @@ const updatePrinter = (data) => {
 		data.kotPrintOrderTypes,
 		data.kotPrintCopyCount,
 		data.printerType,
-		data.printCategories,
-		data.printItems,
+		data.printCategories.toString(),
+		data.printItems.toString(),
 		data.id,
 	]);
 };

@@ -39,7 +39,7 @@ const mergeKOTandOrder = (order, KOTitems) => {
             ...order,
             cartTotal: order.cartTotal + totalKOTCartTotal + totalKOTTax,
             tax: order.tax + totalKOTTax,
-            orderCart: [...order.orderCart, ...formatedKOTItmes],
+            orderCart: [...formatedKOTItmes,...order.orderCart],
             subTotal: order.subTotal + totalKOTCartTotal - totalKOTTax,
       };
 };

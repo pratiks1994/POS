@@ -17,7 +17,7 @@ const getLiveOrders = () => {
 
 		const liveOrdersWithItems = liveOrders.map((order) => {
 			const orderItems = prepareItem.all([order.id]);
-			const KOTDetail = prapareKOT.get([order.id]);
+			const KOTDetail = prapareKOT.all([order.id]);
 
 			const itemsWithAddons = orderItems.map((item) => {
 				const itemAddons = prepareToppings.all([item.id]);

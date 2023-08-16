@@ -27,7 +27,11 @@ const { updatePrinter } = require("./printers/updatePrinter");
 const { getOldKOTs } = require("./KOT/getOldKOTs");
 const { getMenuData } = require("./menuData/getMenuData");
 const { setMenuData } = require("./menuData/setMenuData");
-const {assignPrinterToBill} = require("./printers/assignPrinterToBill")
+const { assignPrinterToBill } = require("./printers/assignPrinterToBill");
+const { updateDefaultScreenData } = require("./settings/updateDefaultScreenData");
+const { getDefaultScreenData } = require("./settings/getDefaultScreenData");
+const { getOrder } = require("./orders/getOrder");
+const { addOrderIdToOldKots } = require("./KOT/addOrderIdToOldKots");
 // const { Socket } = require("socket.io-client");
 const db2 = new Database("restaurant.sqlite", {});
 
@@ -115,9 +119,12 @@ app.post("/order", (req, res, next) => {
 
 	//  for order type Dine In only check if same table number exist and is not setteled, if axist add items to that order only no need to create new KOT
 	const orderId = checkAndUpdateOrder(req.body, db);
+
 	if (orderId !== "") {
 		// for isUpdate = true emmit live order, terminate request as order is updated
-		res.sendStatus(200);
+		const order = getOrder(orderId);
+
+		res.status(200).json({ isOldKOTsExist: false, order, isOldOrderExist: true });
 		const orders = getLiveOrders();
 		io.emit("orders", orders);
 	} else {
@@ -130,7 +137,7 @@ app.post("/order", (req, res, next) => {
 	if (req.body.orderType === "dine_in") {
 		const isOldKOTsExist = checkOldKOTs(req.body.tableNumber);
 		if (isOldKOTsExist) {
-			res.status(200).json({ isOldKOTsExist });
+			res.status(200).json({ isOldKOTsExist, order: {}, isOldOrderExist: false });
 		} else {
 			next();
 		}
@@ -140,15 +147,11 @@ app.post("/order", (req, res, next) => {
 });
 
 app.post("/order", (req, res) => {
-	// const db = openDb();
 
-	// create new order
-	const { userId, orderId } = createOrder(req.body);
-	res.status(200).json({ isOldKOTsExist: false });
-	// create new KOT
-	createKot(req.body, userId, orderId);
-
-	// after entry in table emmit both order and KOTs
+	const { userId, orderId, orderNo } = createOrder(req.body);
+	const kotTokenNo = createKot(req.body, userId, orderId);
+	const order = getOrder(orderId);
+	res.status(200).json({ isOldKOTsExist: false, orderNo, kotTokenNo, order, isOldOrderExist: false });
 	const orders = getLiveOrders();
 	io.emit("orders", orders);
 	const liveKOTs = getLiveKOT();
@@ -156,8 +159,8 @@ app.post("/order", (req, res) => {
 });
 
 app.post("/KOT", (req, res, next) => {
-	const isOrdeExist = checkExistingOrder(req.body);
-	if (!isOrdeExist) {
+	const isOrderExist = checkExistingOrder(req.body);
+	if (!isOrderExist) {
 		next();
 	} else {
 		res.status(200).json({ orderExist: true });
@@ -167,8 +170,8 @@ app.post("/KOT", (req, res, next) => {
 app.post("/KOT", (req, res) => {
 	// const db = openDb();
 	//  create KOT
-	createKot(req.body);
-	res.status(200).json({ orderExist: false });
+	const kotTokenNo = createKot(req.body);
+	res.status(200).json({ orderExist: false, kotTokenNo });
 	// emmit KOT
 	const liveKOTs = getLiveKOT();
 	io.emit("KOTs", liveKOTs);
@@ -230,17 +233,17 @@ app.put("/updatePrinter", (req, res) => {
 	res.sendStatus(200);
 });
 
-app.put("/assignPrinterToBill",(req,res)=>{
-	assignPrinterToBill(req.body)
-	res.sendStatus(200)
-})
+app.put("/assignPrinterToBill", (req, res) => {
+	assignPrinterToBill(req.body);
+	res.sendStatus(200);
+});
 
 app.post("/updateOrderAndCreateKOT", (req, res) => {
 	// const db = openDb();
 	const orderId = checkAndUpdateOrder(req.body);
-	res.sendStatus(200);
 	let userId;
-	createKot(req.body, userId, orderId);
+	const kotTokenNo = createKot(req.body, userId, orderId);
+	res.status(200).json(kotTokenNo);
 	const orders = getLiveOrders();
 	io.emit("orders", orders);
 	const liveKOTs = getLiveKOT();
@@ -249,12 +252,17 @@ app.post("/updateOrderAndCreateKOT", (req, res) => {
 
 app.post("/includeKOTsAndCreateOrder", (req, res) => {
 	const oldKOTs = getOldKOTs(req.body.tableNumber);
-	res.sendStatus(200);
-	createKot(req.body);
+	const kotTokenNo = createKot(req.body);
 	let newFinalOrder = mergeKOTandOrder(req.body, oldKOTs);
-	// console.log(newFinalOrder)
-	const { userId, orderId } = createOrder(newFinalOrder);
+	const { userId, orderId, orderNo } = createOrder(newFinalOrder);
+	addOrderIdToOldKots(orderId, req.body.tableNumber);
+
+	const order = getOrder(orderId);
+
+	res.status(200).json({ newFinalOrder, kotTokenNo, orderNo, order });
+
 	updateKOTUserId(orderId, userId, req.body.tableNumber);
+
 	const orders = getLiveOrders();
 	io.emit("orders", orders);
 	const liveKOTs = getLiveKOT();
@@ -265,6 +273,15 @@ app.post("/updateDatabase", (req, res) => {
 	const { token } = req.body;
 	setMenuData(token);
 	res.sendStatus(200);
+});
+
+app.get("/defaultScreenData", (req, res) => {
+	const options = getDefaultScreenData();
+	res.status(200).json(options);
+});
+
+app.patch("/defaultScreenData", (req, res) => {
+	updateDefaultScreenData(req, res);
 });
 
 httpServer.listen(3001, (err) => {

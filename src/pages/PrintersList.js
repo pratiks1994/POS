@@ -10,9 +10,9 @@ import { useQuery } from "react-query";
 import axiosInstance from "../Feature Components/axiosGlobal";
 
 function PrintersList() {
-      // const { IPAddress } = useSelector((state) => state.serverConfig);
-      // const dispatch = useDispatch();
-
+      const navigate = useNavigate();
+     
+      
       const getPrinters = async () => {
             const { data } = await axiosInstance.get(`/getPrinters`);
             return data;
@@ -28,7 +28,6 @@ function PrintersList() {
             queryFn: getPrinters,
       });
 
-      const navigate = useNavigate();
 
       return (
             <motion.div className={styles.printersListBody} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.1 }}>

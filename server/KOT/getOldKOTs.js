@@ -4,6 +4,7 @@ const db2 = new Database("restaurant.sqlite", {});
 const getOldKOTs = (tableNO) => {
 
       const allKOTItems = []
+      
       const liveKOTs = db2.prepare("SELECT id FROM kot WHERE order_type='dine_in' AND table_no=? AND order_id IS NULL  ").all([tableNO]);
       // const liveKOTs = await dbAll(db, "SELECT * FROM KOT WHERE KOT_status = 'accepted'", []);
 

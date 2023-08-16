@@ -56,11 +56,13 @@ const createHoldOrder = async (order, db) => {
                   itemIdentifier,
                   itemTax,
                   variant_display_name,
+                  categoryId
             } = item;
 
+            console.log(categoryId)
             const holdOrderItemId = await dbRun(
                   db,
-                  "INSERT INTO hold_order_items (Hold_order_id,item_id,item_name,quantity,variation_name,variation_id,description,currentOrderItemId,basePrice,itemTotal,multiItemTotal,itemIdentifier,itemTax) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                  "INSERT INTO hold_order_items (Hold_order_id,item_id,item_name,quantity,variation_name,variation_id,description,currentOrderItemId,basePrice,itemTotal,multiItemTotal,itemIdentifier,itemTax,category_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                   [
                         holdOrderId,
                         itemId,
@@ -75,6 +77,7 @@ const createHoldOrder = async (order, db) => {
                         multiItemTotal,
                         itemIdentifier,
                         JSON.stringify(itemTax),
+                        categoryId
                   ]
             );
 
